@@ -1,0 +1,7 @@
+_arch
+_backup
+_log
+blacklist.txt
+config.json
+vmdk-move.ps1
+vmml.ps1
