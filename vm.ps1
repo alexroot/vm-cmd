@@ -3,6 +3,7 @@ $scriptPath = Split-Path -Parent $MyInvocation.MyCommand.Path
 . "$scriptPath\vmsl.ps1"   # Модуль для простого переноса ВМ
 . "$scriptPath\vmtags.ps1" # Модуль для переноса тегов и атрибутов
 . "$scriptPath\info.ps1"   # Модуль для просмотра информации о ВМ
+. "$scriptPath\diskls.ps1"   # Модуль для просмотра информации о ВМ
 
 # Проверка наличия файла конфигурации
 $configFile = "$scriptPath\config.json"
@@ -48,10 +49,10 @@ function Show-Menu {
     )
 
     Clear-Host
-    Write-Host "=========================================" -ForegroundColor Cyan
+    Write-Host "==================================================" -ForegroundColor Cyan
     Write-Host "Скрипт для работы с .vmx файлами виртуальных машин" -ForegroundColor Cyan
     Write-Host "Автор: Grinevich Alexandr, Версия 1.3" -ForegroundColor Cyan
-    Write-Host "========================================="
+    Write-Host "=================================================="
     if ($isConnected) {
         Write-Host "Статус подключения: Подключено" -ForegroundColor Green
     } else {
@@ -66,8 +67,9 @@ function Show-Menu {
     Write-Host "2. Перенос тегов и атрибутов" -ForegroundColor Yellow
     Write-Host "3. Простой перенос ВМ" -ForegroundColor Yellow
     Write-Host "4. Информация о ВМ" -ForegroundColor Yellow
-    Write-Host "5. Отключиться" -ForegroundColor Yellow
-    Write-Host "6. Выход" -ForegroundColor Yellow
+    Write-Host "5. Файл для копирования дисков" -ForegroundColor Yellow
+    Write-Host "6. Отключиться" -ForegroundColor Yellow
+    Write-Host "7. Выход" -ForegroundColor Yellow
     Write-Host "========================================="
 }
 
@@ -77,7 +79,7 @@ Test-PowerCLIModule
 while ($true) {
     $isConnected = Is-ConnectedToVCenter
     Show-Menu -isConnected $isConnected
-    $choice = Read-Host "Выберите действие (1-6)"
+    $choice = Read-Host "Выберите действие (1-7)"
 
     switch ($choice) {
         "1" {
@@ -126,6 +128,18 @@ while ($true) {
             Info
         }
         "5" {
+            if (-not $isConnected) {
+                Write-Host "Необходимо сначала подключиться к vCenter." -ForegroundColor Red
+                continue
+            }
+
+            # Запрос названия виртуальной машины у пользователя
+            $vmName = Read-Host "Введите название виртуальной машины для формирования файла"
+
+            # Вызов функции из модуля vm.ps1
+            Disk-List -vmName $vmName
+        }
+        "6" {
             if ($isConnected) {
                 try {
                     # Отключение от vCenter
@@ -138,17 +152,17 @@ while ($true) {
                 Write-Host "Вы уже отключены от vCenter." -ForegroundColor Yellow
             }
         }
-        "6" {
+        "7" {
             Write-Host "Выход из скрипта..." -ForegroundColor Cyan
             break
         }
         default {
-            Write-Host "Неверный выбор. Пожалуйста, выберите действие от 1 до 6." -ForegroundColor Red
+            Write-Host "Неверный выбор. Пожалуйста, выберите действие от 1 до 7." -ForegroundColor Red
         }
     }
 
     # Если выбран выход, завершаем цикл
-    if ($choice -eq "6") {
+    if ($choice -eq "7") {
         break
     }
 
